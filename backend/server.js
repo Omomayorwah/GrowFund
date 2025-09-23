@@ -27,39 +27,18 @@ connectDB();
 app.use(helmet());
 app.use(compression());
 
-// CORS configuration - UPDATED
-const allowedOrigins = [
-    'http://localhost:3000',
-    'https://grow-fund-puce.vercel.app/',
-    'https://grow-fund.vercel.app', // Add your actual Vercel domain
-    'https://grow-fund-git-main-Omomayorwah.vercel.app' // Add any preview URLs
-];
-
+// CORS configuration
+// TEMPORARY - for testing only
 app.use(cors({
-    origin: (origin, callback) => {
-        // Allow requests with no origin (like mobile apps, Postman, etc.)
-        if (!origin) return callback(null, true);
-        
-        if (allowedOrigins.includes(origin)) {
-            return callback(null, true);
-        } else {
-            // Log the blocked origin for debugging
-            console.log('CORS blocked origin:', origin);
-            return callback(new Error('Not allowed by CORS'));
-        }
-    },
+    origin: '*', // Allow all origins
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 }));
-
-// Handle preflight requests
-app.options('*', cors());
 
 // Middleware
 app.use(express.json());
 
-// Logging middleware
+// Logging middleware - FIXED: Removed undefined logger reference
 app.use(morgan('combined'));
 
 // Health check endpoint
@@ -87,7 +66,7 @@ app.use((req, res, next) => {
     next(error);
 });
 
-// Global error handler
+// Global error handler - FIXED: Use console.error instead of undefined logger
 app.use((error, req, res, next) => {
     console.error(`Error: ${error.message}`);
     res.status(error.status || 500).json({
