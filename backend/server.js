@@ -23,21 +23,21 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
-// set security middleware
+// Set security middleware
 app.use(helmet());
-app.use (compression());
+app.use(compression());
 
-// cors configuration
+// CORS configuration
 const allowedOrigins = [
     'http://localhost:3000',
     'https://learn-base-eight.vercel.app'
-]
+];
 
 app.use(cors({
     origin: (origin, cb) => {
         // Allow Postman/curl which send no origin
-        if (!origin || allowedOrigins.includes(origin)) return cb (null, true);
-        cb(new Error('Not allowed by CORS'))
+        if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+        cb(new Error('Not allowed by CORS'));
     },
     credentials: true,
     methods: 'GET, POST, PUT, DELETE',
@@ -46,8 +46,8 @@ app.use(cors({
 // Middleware
 app.use(express.json());
 
-// Logging middleware
-app.use(morgan('combined', { stream: { write: (message) => logger.info(message.trim()) } }));
+// Logging middleware - FIXED: Removed undefined logger reference
+app.use(morgan('combined'));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -74,9 +74,9 @@ app.use((req, res, next) => {
     next(error);
 });
 
-// Global error handler
+// Global error handler - FIXED: Use console.error instead of undefined logger
 app.use((error, req, res, next) => {
-    logger.error(`Error: ${error.message}`);
+    console.error(`Error: ${error.message}`);
     res.status(error.status || 500).json({
         success: false,
         message: error.message || 'Internal Server Error',
@@ -92,12 +92,12 @@ app.listen(PORT, () => {
 
 // Graceful shutdown
 process.on('SIGINT', () => {
-    logger.info('SIGINT received. Shutting down gracefully...');
+    console.log('SIGINT received. Shutting down gracefully...');
     process.exit(0);
 });
 
 process.on('SIGTERM', () => {
-    logger.info('SIGINT received. Shutting down gracefully...'); 
+    console.log('SIGTERM received. Shutting down gracefully...'); 
     process.exit(0);
 });
 
