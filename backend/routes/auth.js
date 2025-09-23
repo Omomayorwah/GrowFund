@@ -1,7 +1,7 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import  User  from '../models/User.js';
+import User from '../models/User.js';
 
 const router = express.Router();
 
@@ -10,10 +10,21 @@ router.post('/register', async (req, res) => {
   try {
     const { name, email, password, phone, business } = req.body;
 
+    // Validation
+    if (!name || !email || !password || !phone) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'All fields are required' 
+      });
+    }
+
     // Check if user exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ error: 'User already exists' });
+      return res.status(400).json({ 
+        success: false,
+        error: 'User already exists' 
+      });
     }
 
     // Hash password
@@ -25,7 +36,7 @@ router.post('/register', async (req, res) => {
       email,
       password: hashedPassword,
       phone,
-      business
+      business: business || ''
     });
 
     await user.save();
@@ -38,18 +49,27 @@ router.post('/register', async (req, res) => {
     );
 
     res.status(201).json({
-      message: 'User created successfully',
+      success: true,
       token,
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
         phone: user.phone,
-        business: user.business
+        business: user.business,
+        growFundScore: user.growFundScore || 0,
+        totalSaved: user.totalSaved || 0,
+        savingsStreak: user.savingsStreak || 0,
+        savingsPlan: user.savingsPlan || 'basic',
+        nextPaymentDate: user.nextPaymentDate
       }
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Registration error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
   }
 });
 
@@ -58,16 +78,30 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // Validation
+    if (!email || !password) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Email and password are required' 
+      });
+    }
+
     // Find user
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ error: 'Invalid credentials' });
+      return res.status(400).json({ 
+        success: false,
+        error: 'Invalid credentials' 
+      });
     }
 
     // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ error: 'Invalid credentials' });
+      return res.status(400).json({ 
+        success: false,
+        error: 'Invalid credentials' 
+      });
     }
 
     // Generate token
@@ -78,6 +112,7 @@ router.post('/login', async (req, res) => {
     );
 
     res.json({
+      success: true,
       token,
       user: {
         id: user._id,
@@ -85,14 +120,19 @@ router.post('/login', async (req, res) => {
         email: user.email,
         phone: user.phone,
         business: user.business,
-        growFundScore: user.growFundScore,
-        totalSaved: user.totalSaved,
-        savingsStreak: user.savingsStreak,
-        savingsPlan: user.savingsPlan
+        growFundScore: user.growFundScore || 0,
+        totalSaved: user.totalSaved || 0,
+        savingsStreak: user.savingsStreak || 0,
+        savingsPlan: user.savingsPlan || 'basic',
+        nextPaymentDate: user.nextPaymentDate
       }
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Login error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
   }
 });
 

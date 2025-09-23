@@ -34,21 +34,39 @@ const Register = () => {
       return;
     }
 
-    setLoading(true);
-    
-    const result = await register({
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,
-      phone: formData.phone,
-      business: formData.business
-    });
-    
-    if (!result.success) {
-      setError(result.error);
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
     }
-    
-    setLoading(false);
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const result = await register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        phone: formData.phone,
+        business: formData.business
+      });
+      
+      console.log('Registration result:', result); // Debug log
+      
+      if (!result.success) {
+        setError(result.error || 'Registration failed. Please try again.');
+      } else {
+        // Registration successful - you might want to redirect here
+        console.log('Registration successful!');
+        // Optionally redirect to dashboard or login page
+        // navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

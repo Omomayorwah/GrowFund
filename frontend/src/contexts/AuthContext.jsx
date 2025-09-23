@@ -14,6 +14,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(false); // Separate loading for auth operations
 
   useEffect(() => {
     const token = localStorage.getItem('growfund_token');
@@ -38,6 +39,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (email, password) => {
+    setAuthLoading(true);
     try {
       const response = await axios.post('/api/auth/login', { email, password });
       const { token, user: userData } = response.data;
@@ -48,28 +50,42 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true };
     } catch (error) {
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Login failed';
       return { 
         success: false, 
-        error: error.response?.data?.error || 'Login failed' 
+        error: errorMessage
       };
+    } finally {
+      setAuthLoading(false);
     }
   };
 
   const register = async (userData) => {
+    setAuthLoading(true);
     try {
       const response = await axios.post('/api/auth/register', userData);
-      const { token, user: newUser } = response.data;
       
-      localStorage.setItem('growfund_token', token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      setUser(newUser);
-      
-      return { success: true };
+      if (response.data.success) {
+        const { token, user: newUser } = response.data;
+        localStorage.setItem('growfund_token', token);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        setUser(newUser);
+        return { success: true };
+      } else {
+        return { 
+          success: false, 
+          error: response.data.error 
+        };
+      }
     } catch (error) {
+      console.error('Registration error:', error);
+      const errorMessage = error.response?.data?.error || 'Registration failed';
       return { 
         success: false, 
-        error: error.response?.data?.error || 'Registration failed' 
+        error: errorMessage
       };
+    } finally {
+      setAuthLoading(false);
     }
   };
 
@@ -89,7 +105,8 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     updateUser,
-    loading
+    loading,
+    authLoading
   };
 
   return (
