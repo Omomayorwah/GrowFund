@@ -27,26 +27,39 @@ connectDB();
 app.use(helmet());
 app.use(compression());
 
-// CORS configuration
+// CORS configuration - UPDATED
 const allowedOrigins = [
     'http://localhost:3000',
-    'https://grow-fund-puce.vercel.app'
+    'https://grow-fund-puce.vercel.app/',
+    'https://grow-fund.vercel.app', // Add your actual Vercel domain
+    'https://grow-fund-git-main-Omomayorwah.vercel.app' // Add any preview URLs
 ];
 
 app.use(cors({
-    origin: (origin, cb) => {
-        // Allow Postman/curl which send no origin
-        if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
-        cb(new Error('Not allowed by CORS'));
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps, Postman, etc.)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        } else {
+            // Log the blocked origin for debugging
+            console.log('CORS blocked origin:', origin);
+            return callback(new Error('Not allowed by CORS'));
+        }
     },
     credentials: true,
-    methods: 'GET, POST, PUT, DELETE',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
+
+// Handle preflight requests
+app.options('*', cors());
 
 // Middleware
 app.use(express.json());
 
-// Logging middleware - FIXED: Removed undefined logger reference
+// Logging middleware
 app.use(morgan('combined'));
 
 // Health check endpoint
@@ -74,7 +87,7 @@ app.use((req, res, next) => {
     next(error);
 });
 
-// Global error handler - FIXED: Use console.error instead of undefined logger
+// Global error handler
 app.use((error, req, res, next) => {
     console.error(`Error: ${error.message}`);
     res.status(error.status || 500).json({
