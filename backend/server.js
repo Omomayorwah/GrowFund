@@ -30,7 +30,7 @@ app.use(compression());
 // CORS configuration
 const allowedOrigins = [
     'http://localhost:3000',
-    'https://learn-base-eight.vercel.app'
+    'https://grow-fund-puce.vercel.app'
 ];
 
 app.use(cors({
