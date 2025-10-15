@@ -67,7 +67,7 @@ const Dashboard = () => {
           title="Total Saved"
           value={`₦${user?.totalSaved?.toLocaleString() || '0'}`}
           icon={Wallet}
-          bgColor="from-green-500 to-green-600"
+          bgColor="bg-green-550"
           iconColor="text-green-200"
           textColor="text-green-100"
         />
