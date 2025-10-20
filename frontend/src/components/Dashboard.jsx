@@ -62,7 +62,7 @@ const Dashboard = () => {
       </div>
 
       {/* Key Metrics */}
-      <div className="grid md:grid-cols-4 gap-6 mb-8">
+      <div clasclassName="flex md:grid md:grid-cols-4 gap-4 md:gap-6 mb-8 overflow-x-auto pb-4">
         <MetricCard
           title="Total Saved"
           value={`₦${user?.totalSaved?.toLocaleString() || '0'}`}
